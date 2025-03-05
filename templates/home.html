@@ -6,7 +6,43 @@
 
 {% block content %}
 
-<h1>Hello, Welcome to Home page</h1>
+<h1>Clients List</h1>
+<br>
+<a href="{% url 'add_client' %}" class="btn btn-primary">Add Client</a>
+<br><br>
+
+<table class="table table-primary table-hover">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Email</th>
+      <th scope="col">Phone</th>
+      <th scope="col">City</th>
+      <th scope="col">Created_at</th>
+      
+    </tr>
+  </thead>
+  <tbody class="table table-striped">
+    
+      {% for client in clients %}
+      <tr>
+      <td><a href="{% url 'client_detail' client.id %}">{{ client.id }}</a></td>
+      <td>{{ client.full_name }}</td>
+      <td>{{ client.email }}</td>
+      <td>{{ client.phone }}</td>
+      <td>{{ client.city}}</td>
+      <td>{{ client.created_at }}</td>
+      
+
+    </tr>
+      {% endfor %}
+  
+  </tbody>
+</table>
+
+
+
 
 
 {% endblock %}
