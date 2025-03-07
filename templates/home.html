@@ -9,7 +9,15 @@
 <h1>Clients List</h1>
 <br>
 <a href="{% url 'add_client' %}" class="btn btn-primary">Add Client</a>
+<a href="{% url 'export_clients' %}" class="btn btn-info">Export as csv</a>
+<a href="{% url 'exoprt_with_pdf' %}" class="btn btn-warning">Export as pdf</a>
 <br><br>
+<p>
+<form action="{% url 'search_clients' %}" method="get">
+  <input type="text" name="q" placeholder="Search by name or city">
+  <button type="submit">Search</button>
+</form>
+</p>
 
 <table class="table table-primary table-hover">
   <thead>
@@ -20,6 +28,7 @@
       <th scope="col">Phone</th>
       <th scope="col">City</th>
       <th scope="col">Created_at</th>
+      <th scope="col">Product</th>
       
     </tr>
   </thead>
@@ -33,6 +42,8 @@
       <td>{{ client.phone }}</td>
       <td>{{ client.city}}</td>
       <td>{{ client.created_at }}</td>
+      <td><a href="{% url 'client_products' client.id %}">Products</a></td>
+
       
 
     </tr>

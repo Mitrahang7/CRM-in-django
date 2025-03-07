@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div class="container mt-4">
+  <h2 class="mb-3">{{ client.full_name }} Products</h2>
+  {% for product in products %}
+   
+  <div class="card p-3">
+      <p><strong> Product Name:</strong> {{ product.name }}</p>
+      <p><strong>Price:</strong> {{ product.price }}</p>  
+  </div>
+  {% endfor %}
+  <br>
+  <a href="{% url 'home' %}" class="btn btn-primary">Back to Home</a>
+  <a href="{% url 'new_product' client.id %}" class="btn btn-success">Add new Product</a>
+</div>
+</div>
+
+{% endblock %}

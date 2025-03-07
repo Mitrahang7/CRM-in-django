@@ -1,8 +1,13 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .models import Client
+from .models import Client,Product
+import csv
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from django.db.models import Q
 
 
 
@@ -161,6 +166,120 @@ def register(request):
   
   else:
     return render(request,'register.html')
+  
+def client_products(request,client_id):
+  if request.user.is_authenticated:
+    client= get_object_or_404(Client,id=client_id)
+    products=Product.objects.filter(client=client)
+
+    return render(request,'client_products.html', {'client':client, 'products':products})
+
+  else:
+    messages.error(request, ' Please login for this page')
+    return redirect('login')
+  
+def new_product(request,client_id):
+  if request.user.is_authenticated:
+    client = get_object_or_404(Client,id=client_id)
+    if request.method == "POST":
+      name= request.POST.get('name')
+      price= request.POST.get('price')
+      product= Product.objects.create(name=name,price=price,client=client)
+      
+      messages.success(request,f"{product.name} is added sucesfully for {client.full_name}")
+      return redirect('client_products', client_id=client.id)
+    
+    
+    return render(request, 'new_product.html', {'client':client})
+
+  else:
+    messages.error(request, ' Please login for this page')
+    return redirect('login')
+  
+def export_clients(request):
+  if request.user.is_authenticated:
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="clients.csv"'
+
+     # Create a CSV writer object
+    writer = csv.writer(response)
+
+    # Write csv header 
+    writer.writerow(['ID', 'Name', 'Email', 'Phone', 'City', 'Created At'])
+
+    clients = Client.objects.all()
+
+    for client in clients:
+      writer.writerow([client.id, client.full_name, client.email, client.phone, client.city, client.created_at])
+
+    return response
+
+  else:
+    messages.error(request, ' Please login for this page')
+    return redirect('login')
+
+def exoprt_with_pdf(request):
+  if request.user.is_authenticated:
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="clients.pdf"'
+
+    # Create a PDF canvas object
+    c = canvas.Canvas(response, pagesize=letter)
+
+    # Set up the initial position for text
+    width, height = letter
+    y_position = height - 40
+
+    # Add the title to the PDF
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(200, y_position, "Clients List")
+    y_position -= 20
+
+    # Add column headers
+    c.setFont("Helvetica", 10)
+    c.drawString(40, y_position, "ID")   
+    c.drawString(100, y_position, "Full Name")
+    c.drawString(250, y_position, "Email")
+    c.drawString(400, y_position, "Phone")
+    c.drawString(500, y_position, "City")
+    y_position -= 15       
+
+    clients = Client.objects.all()
+
+    for client in clients:
+            c.drawString(40, y_position, str(client.id))
+            c.drawString(100, y_position, client.full_name)
+            c.drawString(250, y_position, client.email)
+            c.drawString(400, y_position, client.phone)
+            c.drawString(500, y_position, client.city)
+            y_position -= 15
+
+            if y_position < 40:  # If the text goes beyond the page, create a new page
+                c.showPage()
+                y_position = height - 40
+    
+    c.showPage()
+    c.save()
+
+    return response
+
+  else:
+    messages.error(request, ' Please login for this page')
+    return redirect('login')
+  
+
+def search_clients(request):
+  query=request.GET.get('q')
+  results=[]
+
+  if query:
+    results=Client.objects.filter(Q(full_name__icontains=query) | Q(city__icontains=query))
+
+  return render(request, 'search.html', {'query':query, 'results':results})
+
+
+
+
 
 
 
